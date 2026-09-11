@@ -58,6 +58,8 @@ CREATE POLICY "Allow all write profiles" ON public.profiles FOR ALL USING (true)
 
 CREATE POLICY "Allow all read equipment" ON public.equipment FOR SELECT USING (true);
 CREATE POLICY "Allow all write equipment" ON public.equipment FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Only admins can insert equipment" ON public.equipment AS RESTRICTIVE FOR INSERT TO anon, authenticated
+WITH CHECK ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 CREATE POLICY "Allow all read borrow_requests" ON public.borrow_requests FOR SELECT USING (true);
 CREATE POLICY "Allow all write borrow_requests" ON public.borrow_requests FOR ALL USING (true) WITH CHECK (true);

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,10 +12,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: "Barrow-Sports | ระบบยืม-คืนอุปกรณ์กีฬาโรงเรียน",
   description: "ระบบบริหารจัดการและยืม-คืนอุปกรณ์กีฬาโรงเรียน ตรวจสอบสถานะสต็อกแบบเรียลไทม์ พร้อมหลักฐานรูปถ่ายส่งคืน",
 };
+
+function ThemeInit() {
+  const script = `(function(){try{var s=localStorage.getItem('barrow-theme');var t=s||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){document.documentElement.classList.add('dark');}})();`;
+  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+}
 
 export default function RootLayout({
   children,
@@ -23,11 +34,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="th"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 relative">
+    <html lang="th" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <ThemeInit />
+      </head>
+      <body className="min-h-full flex flex-col relative">
         <div className="ambient-glow-mesh" aria-hidden="true" />
         <div className="relative z-10 flex-1 flex flex-col">{children}</div>
       </body>

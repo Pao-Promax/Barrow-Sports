@@ -1,5 +1,7 @@
 'use client';
 
+import { supabase } from '@/lib/supabase';
+import { isAdminUser } from '@/lib/admin-role';
 import React, { useState } from 'react';
 import { X, PlusCircle, Image as ImageIcon, MapPin, Layers } from 'lucide-react';
 
@@ -36,9 +38,11 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
     setLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !isAdminUser(session.user)) throw new Error('เฉพาะ Admin เท่านั้นที่เพิ่มอุปกรณ์ได้');
       const res = await fetch('/api/equipment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({
           name,
           category,
@@ -65,16 +69,17 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-lg bg-[var(--background)] text-[var(--foreground)] border t-line rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/70 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b t-line bg-[var(--accent-soft)] shrink-0">
           <div className="flex items-center gap-2">
-            <PlusCircle className="w-5 h-5 text-emerald-400" />
-            <h3 className="font-bold text-base text-slate-100">เพิ่มอุปกรณ์กีฬาใหม่เข้าระบบ</h3>
+            <PlusCircle className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
+            <h3 className="font-bold text-base text-[var(--foreground)]">เพิ่มอุปกรณ์กีฬาใหม่เข้าระบบ</h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-100 p-1 rounded-lg hover:bg-slate-800"
+            aria-label="ปิดหน้าต่าง"
+            className="t-muted hover:text-[var(--foreground)] p-1 rounded-lg hover:bg-[var(--accent-soft)]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,14 +87,14 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
           {error && (
-            <div className="p-3 bg-rose-500/15 border border-rose-500/30 rounded-xl text-rose-300 text-xs">
+            <div className="p-3 bg-rose-500/15 border border-rose-500/30 rounded-xl text-rose-700 dark:text-rose-300 text-sm">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
-              ชื่ออุปกรณ์กีฬา <span className="text-rose-400">*</span>
+            <label className="block text-sm font-semibold t-muted mb-1">
+              ชื่ออุปกรณ์กีฬา <span className="text-rose-700 dark:text-rose-300">*</span>
             </label>
             <input
               type="text"
@@ -97,19 +102,19 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="เช่น ลูกบาสเกตบอล Molten BG3800 เบอร์ 7"
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full px-3.5 py-2.5 bg-[var(--background)] border t-line rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-sm font-semibold t-muted mb-1">
                 หมวดหมู่กีฬา
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2.5 bg-[var(--background)] border t-line rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500"
               >
                 <option value="basketball">บาสเกตบอล (Basketball)</option>
                 <option value="football">ฟุตบอล (Football)</option>
@@ -122,7 +127,7 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-sm font-semibold t-muted mb-1">
                 จำนวนทั้งหมด (ชิ้น)
               </label>
               <input
@@ -131,13 +136,13 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
                 required
                 value={totalQuantity}
                 onChange={(e) => setTotalQuantity(parseInt(e.target.value, 10) || 1)}
-                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2.5 bg-[var(--background)] border t-line rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-sm font-semibold t-muted mb-1">
               ตำแหน่งจุดจัดเก็บ (Locker / Rack)
             </label>
             <input
@@ -145,12 +150,12 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="เช่น ตู้ A-01, ห้องเก็บอุปกรณ์ 2"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full px-3 py-2 bg-[var(--background)] border t-line rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-sm font-semibold t-muted mb-1">
               รูปภาพอุปกรณ์ (เลือกรูปตัวอย่างด่วน หรือ ใส่ลิงก์ URL)
             </label>
             <div className="flex flex-wrap gap-1.5 mb-2">
@@ -161,8 +166,8 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
                   onClick={() => setImageUrl(preset.url)}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors ${
                     imageUrl === preset.url
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-700 dark:text-emerald-300'
+                      : 'bg-[var(--background)] t-line t-muted hover:text-[var(--foreground)]'
                   }`}
                 >
                   {preset.label}
@@ -174,12 +179,12 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+              className="w-full px-3 py-2 bg-[var(--background)] border t-line rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
+            <label className="block text-sm font-semibold t-muted mb-1">
               คำอธิบายรายละเอียด
             </label>
             <textarea
@@ -187,22 +192,22 @@ export function AddEquipmentModal({ isOpen, onClose, onSuccess }: AddEquipmentMo
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="รายละเอียดสภาพอุปกรณ์ หรือเงื่อนไขการใช้"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500 resize-none"
+              className="w-full px-3 py-2 bg-[var(--background)] border t-line rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500 resize-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800 shrink-0">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t t-line shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200"
+              className="px-4 py-2 text-sm font-semibold t-muted hover:text-[var(--foreground)]"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-all cursor-pointer"
             >
               {loading ? 'กำลังบันทึก...' : 'บันทึกอุปกรณ์ใหม่'}
             </button>

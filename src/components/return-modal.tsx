@@ -95,20 +95,20 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       
       {/* Frosted Glass Bottom Sheet on Mobile, Centered on Desktop */}
-      <div className="relative w-full max-w-lg glass-panel rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border border-white/15">
+      <div className="relative w-full max-w-lg glass-panel rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border t-line">
         
         {/* Mobile pull indicator */}
-        <div className="sm:hidden w-12 h-1.5 bg-white/20 rounded-full mx-auto mt-3"></div>
+        <div className="sm:hidden w-12 h-1.5 bg-[var(--line)] rounded-full mx-auto mt-3"></div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b t-line shrink-0">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50"></span>
-            <h3 className="font-bold text-base text-slate-100">ส่งคืนอุปกรณ์กีฬา</h3>
+            <h3 className="font-bold text-base text-[var(--foreground)]">ส่งคืนอุปกรณ์กีฬา</h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-100 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            className="t-muted hover:text-[var(--foreground)] p-1.5 rounded-lg hover:bg-[var(--accent-soft)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -118,11 +118,11 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
         <form onSubmit={handleReturn} className="p-6 space-y-5 overflow-y-auto">
           
           {/* Target item info */}
-          <div className="p-3.5 glass-card rounded-xl border border-white/10 flex justify-between items-center">
+          <div className="p-3.5 glass-card rounded-xl border t-line flex justify-between items-center">
             <div>
-              <div className="text-[11px] text-slate-400">อุปกรณ์ที่ส่งคืน:</div>
-              <div className="font-bold text-sm text-slate-100 mt-0.5">{borrow.equipment_name}</div>
-              <div className="text-xs text-slate-400 mt-1">ผู้ยืม: {borrow.user_name}</div>
+              <div className="text-[11px] t-muted">อุปกรณ์ที่ส่งคืน:</div>
+              <div className="font-bold text-sm text-[var(--foreground)] mt-0.5">{borrow.equipment_name}</div>
+              <div className="text-xs t-muted mt-1">ผู้ยืม: {borrow.user_name}</div>
             </div>
             <div className="text-right">
               <span className="px-3 py-1 glass-badge-cyan text-xs font-bold rounded-lg">
@@ -139,8 +139,8 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
 
           {/* Photo Proof Section with mobile camera capture */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
-              ถ่ายรูป / อัปโหลดรูปวางอุปกรณ์คืนที่จุดเดิม <span className="text-rose-400">*</span>
+            <label className="block text-xs font-semibold t-muted mb-2">
+              ถ่ายรูป / อัปโหลดรูปวางอุปกรณ์คืนที่จุดเดิม <span className="text-rose-700 dark:text-rose-300">*</span>
             </label>
             
             <input
@@ -153,7 +153,7 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
             />
 
             {previewUrl ? (
-              <div className="relative rounded-2xl overflow-hidden border border-white/20 glass-panel group">
+              <div className="relative rounded-2xl overflow-hidden border t-line glass-panel group">
                 <img
                   src={previewUrl}
                   alt="รูปถ่ายยืนยันจุดส่งคืน"
@@ -165,11 +165,11 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
                     setFile(null);
                     setPreviewUrl('');
                   }}
-                  className="absolute top-3 right-3 p-2 rounded-xl bg-black/70 hover:bg-rose-600 text-white transition-colors"
+                  className="absolute top-3 right-3 p-2 rounded-xl bg-black/70 hover:bg-rose-600 text-[var(--foreground)] transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
-                <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-black/70 backdrop-blur-md text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-black/70 backdrop-blur-md text-xs text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>พร้อมอัปโหลดรูปภาพ</span>
                 </div>
@@ -177,15 +177,15 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
             ) : (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-white/20 hover:border-cyan-400/60 rounded-2xl p-6 sm:p-8 text-center cursor-pointer glass-panel hover:bg-white/5 transition-all flex flex-col items-center justify-center gap-2.5 min-h-[140px]"
+                className="border-2 border-dashed t-line hover:border-cyan-400/60 rounded-2xl p-6 sm:p-8 text-center cursor-pointer glass-panel hover:bg-[var(--accent-soft)] transition-all flex flex-col items-center justify-center gap-2.5 min-h-[140px]"
               >
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/10">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-700 dark:text-cyan-300 shadow-lg shadow-cyan-500/10">
                   <Camera className="w-6 h-6" />
                 </div>
-                <div className="text-xs font-bold text-slate-200">
+                <div className="text-xs font-bold text-[var(--foreground)]">
                   แตะเพื่อเปิดกล้องถ่ายรูป หรือเลือกรูปจากมือถือ
                 </div>
-                <p className="text-[11px] text-slate-400 max-w-xs">
+                <p className="text-[11px] t-muted max-w-xs">
                   ถ่ายรูปอุปกรณ์ที่วางเก็บบนตู้หรือชั้นวาง เพื่อเป็นหลักฐานปิดรายการยืม
                 </p>
               </div>
@@ -193,24 +193,24 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
           </div>
 
           {/* Damaged Report Glass Section */}
-          <div className="p-4 rounded-xl glass-card border border-white/10 space-y-3">
+          <div className="p-4 rounded-xl glass-card border t-line space-y-3">
             <label className="flex items-center gap-3 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isDamaged}
                 onChange={(e) => setIsDamaged(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-700 text-amber-500 focus:ring-amber-500 bg-slate-900"
+                className="w-4 h-4 rounded border-slate-700 text-amber-500 focus:ring-amber-500 bg-[var(--accent-soft)]"
               />
-              <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-amber-700 dark:text-amber-300" />
                 แจ้งอุปกรณ์ชำรุด / มีปัญหาขณะใช้งาน
               </span>
             </label>
 
             {isDamaged && (
-              <div className="pt-3 border-t border-white/10 space-y-2 animate-in fade-in">
+              <div className="pt-3 border-t t-line space-y-2 animate-in fade-in">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs text-slate-300">จำนวนที่ชำรุด:</label>
+                  <label className="text-xs t-muted">จำนวนที่ชำรุด:</label>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -219,7 +219,7 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
                     >
                       -
                     </button>
-                    <span className="text-xs font-bold px-2 text-amber-300">{damagedCount} ชิ้น</span>
+                    <span className="text-xs font-bold px-2 text-amber-700 dark:text-amber-300">{damagedCount} ชิ้น</span>
                     <button
                       type="button"
                       onClick={() => setDamagedCount(Math.min(borrow.quantity, damagedCount + 1))}
@@ -235,7 +235,7 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
 
           {/* Additional Notes */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+            <label className="block text-[11px] font-semibold t-muted mb-1">
               หมายเหตุเพิ่มเติม (ถ้ามี)
             </label>
             <input
@@ -243,23 +243,23 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
               value={returnNote}
               onChange={(e) => setReturnNote(e.target.value)}
               placeholder="เช่น นำไปวางในตู้ A-01 เรียบร้อย"
-              className="w-full px-3.5 py-2.5 glass-input rounded-xl text-xs text-slate-100 focus:outline-none"
+              className="w-full px-3.5 py-2.5 glass-input rounded-xl text-xs text-[var(--foreground)] focus:outline-none"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10 shrink-0 pb-2 sm:pb-0">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t t-line shrink-0 pb-2 sm:pb-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+              className="px-4 py-2.5 text-xs font-semibold t-muted hover:text-[var(--foreground)] transition-colors"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 shadow-lg shadow-cyan-500/25 transition-all disabled:opacity-50 cursor-pointer min-h-[44px]"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer min-h-[44px]"
             >
               {loading ? (
                 <span>กำลังบันทึกข้อมูล...</span>

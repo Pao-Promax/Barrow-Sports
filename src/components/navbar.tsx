@@ -1,84 +1,58 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useSchoolUser, signInWithSchoolGoogle } from '@/lib/use-school-user';
+import { isAdminUser } from '@/lib/admin-role';
+import { ProfileAvatar } from './profile-avatar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Trophy, Dumbbell, Clock, ShieldCheck, UserCheck, LogIn, Menu, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Trophy, Dumbbell, Clock, ShieldCheck, UserCheck, UserRound, LogIn } from 'lucide-react';
+import styles from './navbar.module.css';
+import { ThemeToggle } from '@/components/theme-toggle';
+
 
 export function Navbar() {
   const pathname = usePathname();
-  const [userRole, setUserRole] = useState<'student' | 'admin'>('student');
-  const [userName, setUserName] = useState<string>('ผู้ยืม (Student)');
-  const [userEmail, setUserEmail] = useState<string>('50788@cru.ac.th');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const savedRole = localStorage.getItem('barrow_user_role') as 'student' | 'admin';
-    if (savedRole) setUserRole(savedRole);
-    const savedName = localStorage.getItem('barrow_user_name');
-    if (savedName) setUserName(savedName);
-    const savedEmail = localStorage.getItem('barrow_user_email');
-    if (savedEmail) setUserEmail(savedEmail);
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUserName(session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User');
-        setUserEmail(session.user.email || '');
-      }
-    });
-  }, []);
-
-  const toggleRole = () => {
-    const nextRole = userRole === 'student' ? 'admin' : 'student';
-    setUserRole(nextRole);
-    localStorage.setItem('barrow_user_role', nextRole);
-    if (nextRole === 'admin') {
-      setUserName('อาจารย์ผู้ดูแลอุปกรณ์ (Admin)');
-    } else {
-      setUserName('นักเรียน (50788@cru.ac.th)');
-    }
-  };
+  const { user } = useSchoolUser();
+  const isAdmin = isAdminUser(user);
+  const userRole = isAdmin ? 'admin' : 'student';
 
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
+    const { error } = await signInWithSchoolGoogle();
     if (error) alert('เข้าสู่ระบบไม่สำเร็จ: ' + error.message);
   };
 
   const navItems = [
     { href: '/', label: 'อุปกรณ์กีฬา', icon: Dumbbell },
     { href: '/my-borrows', label: 'ของที่ฉันยืม', icon: Clock },
-    { href: '/admin', label: 'จัดการสต็อก (Admin)', icon: ShieldCheck }
+    isAdmin
+      ? { href: '/admin', label: 'จัดการสต็อก (Admin)', icon: ShieldCheck }
+      : { href: '/profile', label: 'โปรไฟล์', icon: UserRound }
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/10 backdrop-blur-2xl">
+    <>
+    <header className="hidden xl:block sticky top-0 z-40 w-full glass-panel border-b t-line backdrop-blur-2xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-400 p-[1px] shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
-            <div className="w-full h-full bg-slate-950/90 rounded-[11px] flex items-center justify-center backdrop-blur-sm">
-              <Trophy className="w-5 h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+        <Link href="/" aria-label="Barrow Sports หน้าแรก" className="flex items-center gap-2 group shrink-0">
+          <div className="w-10 h-10 rounded-xl glass-pill p-[1px]">
+            <div className="w-full h-full bg-[var(--background)] rounded-[11px] flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-[var(--accent)] group-hover:text-[var(--foreground)] transition-colors" />
             </div>
           </div>
-          <div className="flex flex-col">
-            <span className="font-black text-base sm:text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-emerald-300">
-              BARROW<span className="text-emerald-400">.</span>SPORTS
+          <div className="hidden min-[380px]:flex flex-col">
+            <span className="font-semibold text-sm sm:text-lg tracking-tight whitespace-nowrap text-[var(--foreground)]">
+              BARROW<span className="text-emerald-500">.</span>SPORTS
             </span>
-            <span className="text-[10px] font-medium tracking-widest text-slate-400 uppercase -mt-0.5">
+            <span className="text-[10px] font-medium tracking-wide whitespace-nowrap t-muted uppercase -mt-0.5">
               ระบบยืม-คืนอุปกรณ์กีฬา
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1.5 p-1 rounded-xl glass-pill">
+        <nav aria-label="เมนูหลัก" className="hidden xl:flex items-center gap-1.5 p-1 rounded-xl glass-pill">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -86,13 +60,14 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   isActive
-                    ? 'glass-pill-active text-white shadow-lg'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
+                    ? 'glass-pill-active'
+                    : 't-muted hover:text-[var(--foreground)] hover:bg-[var(--accent-soft)]'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                {item.href === '/profile' ? <ProfileAvatar user={user} className="w-6 h-6" /> : <Icon className="w-4 h-4" />}
                 {item.label}
               </Link>
             );
@@ -101,11 +76,11 @@ export function Navbar() {
 
         {/* User Controls */}
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           {/* Role Switcher Pill */}
-          <button
-            onClick={toggleRole}
-            title="คลิกเพื่อสลับโหมดระหว่างนักเรียน และ ครูผู้ดูแลระบบ"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+          <div
+            title="สิทธิ์ของบัญชีปัจจุบัน"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all  ${
               userRole === 'admin'
                 ? 'glass-badge-amber hover:bg-amber-500/25'
                 : 'glass-badge-emerald hover:bg-emerald-500/25'
@@ -114,51 +89,50 @@ export function Navbar() {
             {userRole === 'admin' ? (
               <>
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">โหมด: แอดมิน (ครู)</span>
+                <span className="hidden sm:inline">สิทธิ์: แอดมิน (ครู)</span>
                 <span className="sm:hidden">Admin</span>
               </>
             ) : (
               <>
                 <UserCheck className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">โหมด: ผู้ยืม (นักเรียน)</span>
+                <span className="hidden sm:inline">สิทธิ์: ผู้ยืม (นักเรียน)</span>
                 <span className="sm:hidden">นักเรียน</span>
               </>
             )}
-          </button>
+          </div>
 
-          {/* Google Login button */}
-          <button
+          {/* Account access */}
+          {user ? <Link href="/profile" aria-label="โปรไฟล์ของฉัน" className="w-11 h-11 flex items-center justify-center"><ProfileAvatar user={user} className="w-8 h-8" /></Link> : <button
             onClick={handleGoogleLogin}
-            className="flex items-center gap-1.5 px-3 py-1.5 glass-pill hover:bg-white/10 text-slate-200 rounded-xl text-xs font-semibold transition-colors"
+            aria-label="เข้าสู่ระบบด้วย Google"
+            className="flex items-center gap-1.5 px-3 py-1.5 glass-pill hover:bg-[var(--accent-soft)] rounded-xl text-xs font-semibold transition-colors"
           >
-            <LogIn className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden md:inline">Google Login</span>
-          </button>
+            <LogIn className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="hidden lg:inline">Google Login</span>
+          </button>}
         </div>
 
       </div>
 
-      {/* Mobile Navigation Bar - Fixed at bottom or top bar */}
-      <div className="md:hidden grid grid-cols-3 border-t border-white/10 px-2 py-1.5 bg-slate-950/80 backdrop-blur-xl">
-        {navItems.map((item) => {
+    </header>
+
+      <nav aria-label="เมนูหลักบนมือถือ" className={styles.dock}>
+        {(isAdmin ? [...navItems, { href: '/profile', label: 'โปรไฟล์', icon: UserRound }] : navItems).map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-medium transition-all ${
-                isActive
-                  ? 'text-emerald-400 font-bold bg-white/5'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
+                aria-current={isActive ? 'page' : undefined}
+              className={styles.link}
             >
-              <Icon className="w-4 h-4 mb-0.5" />
+              {item.href === '/profile' ? <ProfileAvatar user={user} className="w-6 h-6" /> : <Icon className="w-5 h-5" aria-hidden="true" />}
               <span>{item.label.split(' ')[0]}</span>
             </Link>
           );
         })}
-      </div>
-    </header>
+      </nav>
+    </>
   );
 }

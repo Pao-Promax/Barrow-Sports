@@ -1,3 +1,5 @@
+import { isSchoolAccount, SCHOOL_LOGIN_MESSAGE } from '@/lib/school-account';
+import { isAdminUser } from '@/lib/admin-role';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -38,6 +40,13 @@ export async function GET(request: Request) {
 // POST: Add new equipment (Admin)
 export async function POST(request: Request) {
   try {
+    const token = request.headers.get('authorization')?.match(/^Bearer\s+(\S+)$/i)?.[1];
+    if (!token) return NextResponse.json({ error: 'กรุณาเข้าสู่ระบบ' }, { status: 401 });
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) return NextResponse.json({ error: 'กรุณาเข้าสู่ระบบใหม่' }, { status: 401 });
+    if (!isSchoolAccount(user)) return NextResponse.json({ error: SCHOOL_LOGIN_MESSAGE }, { status: 403 });
+    if (!isAdminUser(user)) return NextResponse.json({ error: 'เฉพาะ Admin เท่านั้นที่เพิ่มอุปกรณ์ได้' }, { status: 403 });
+
     const body = await request.json();
     const { name, category, description, image_url, total_quantity, location } = body;
 
