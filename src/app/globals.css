@@ -2,50 +2,174 @@
 
 @layer base {
   :root {
-    --background: #090d16;
-    --foreground: #f1f5f9;
+    --background: #060911;
+    --foreground: #f8fafc;
+    --glass-surface: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-highlight: rgba(255, 255, 255, 0.08);
+  }
+
+  ::selection {
+    background: rgba(16, 185, 129, 0.35);
+    color: #ffffff;
+  }
+
+  /* Custom subtle glass scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(6, 9, 17, 0.8);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(52, 211, 153, 0.4);
   }
 }
 
 body {
-  background-color: #090d16;
-  color: #f1f5f9;
+  background-color: #060911;
+  color: #f8fafc;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
 }
 
-/* Custom Sports Glassmorphism & Glow */
+/* Atmospheric Ambient Glow for Glassmorphism Refraction */
+.ambient-glow-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.ambient-glow-mesh::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: 20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 70%);
+  filter: blur(80px);
+}
+
+.ambient-glow-mesh::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  right: 15%;
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.04) 50%, transparent 70%);
+  filter: blur(90px);
+}
+
+/* Premium Physical Glassmorphism Surfaces */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 20px 40px -15px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(22, 33, 58, 0.75);
+  border-color: rgba(52, 211, 153, 0.35);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.7),
+    0 0 20px 0 rgba(16, 185, 129, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-3px);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.glass-pill-active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(6, 182, 212, 0.2) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  box-shadow: 
+    0 0 15px rgba(16, 185, 129, 0.25),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+  color: #6ee7b7;
+}
+
+.glass-input {
+  background: rgba(10, 15, 30, 0.7);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
 }
 
-.glass-panel-hover:hover {
-  background: rgba(30, 41, 59, 0.85);
-  border-color: rgba(52, 211, 153, 0.4);
-  transform: translateY(-2px);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.glass-input:focus {
+  background: rgba(12, 20, 40, 0.85);
+  border-color: rgba(52, 211, 153, 0.5);
+  box-shadow: 
+    0 0 0 3px rgba(16, 185, 129, 0.15),
+    inset 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.sports-gradient {
-  background: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
-}
-
-.sports-badge-available {
+/* Glass Status Badges */
+.glass-badge-emerald {
   background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  color: #6ee7b7;
+  backdrop-filter: blur(8px);
 }
 
-.sports-badge-low {
+.glass-badge-amber {
   background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fcd34d;
+  backdrop-filter: blur(8px);
 }
 
-.sports-badge-out {
+.glass-badge-rose {
   background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fca5a5;
+  backdrop-filter: blur(8px);
+}
+
+.glass-badge-cyan {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  color: #67e8f9;
+  backdrop-filter: blur(8px);
 }
