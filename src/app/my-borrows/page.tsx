@@ -1,4 +1,5 @@
 'use client';
+import { authHeaders } from '@/lib/auth-headers';
 
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/navbar';
@@ -18,20 +19,23 @@ import Link from 'next/link';
 
 export default function MyBorrowsPage() {
   const [borrows, setBorrows] = useState<BorrowRequest[]>([]);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedBorrowForReturn, setSelectedBorrowForReturn] = useState<BorrowRequest | null>(null);
   const [viewProofUrl, setViewProofUrl] = useState<string | null>(null);
 
   const fetchBorrows = async () => {
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch('/api/borrow');
+      const res = await fetch('/api/borrow?mine=true', { headers: await authHeaders() });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'โหลดรายการไม่สำเร็จ');
       if (res.ok && data.borrows) {
         setBorrows(data.borrows);
       }
     } catch (err) {
-      console.error('Fetch borrows error:', err);
+      setError(err instanceof Error ? err.message : 'โหลดรายการไม่สำเร็จ');
     } finally {
       setLoading(false);
     }
@@ -41,7 +45,7 @@ export default function MyBorrowsPage() {
     fetchBorrows();
   }, []);
 
-  const activeBorrows = borrows.filter((b) => b.status === 'active');
+  const activeBorrows = borrows.filter((b) => ['active', 'overdue', 'pending_verification'].includes(b.status));
   const returnedBorrows = borrows.filter((b) => b.status === 'returned');
 
   // Time remaining calculator
@@ -93,12 +97,14 @@ export default function MyBorrowsPage() {
           </Link>
         </div>
 
+        {error && <p role="alert" className="glass-card rounded-xl p-4">{error} · <Link href="/profile" className="underline">โปรไฟล์ / เข้าสู่ระบบ</Link></p>}
+
         {/* Section 1: Active Borrows (Currently In Use) */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50"></span>
             <h2 className="text-lg font-bold text-[var(--foreground)]">
-              กำลังยืมใช้งานอยู่ ({activeBorrows.length} รายการ)
+              รายการที่ยังไม่ปิด ({activeBorrows.length} รายการ)
             </h2>
           </div>
 
@@ -130,7 +136,7 @@ export default function MyBorrowsPage() {
                         จำนวนที่ยืม: {borrow.quantity} ชิ้น
                       </div>
                     </div>
-                    {getTimeRemainingBadge(borrow.due_at)}
+                    {borrow.status === 'pending_verification' ? <span className="glass-pill rounded-xl px-3 py-2 text-xs">รอตรวจรับ</span> : getTimeRemainingBadge(borrow.due_at)}
                   </div>
 
                   <div className="p-3.5 glass-panel rounded-xl text-xs space-y-2 t-muted">
@@ -148,13 +154,15 @@ export default function MyBorrowsPage() {
                     </div>
                   </div>
 
+                  {borrow.status === 'pending_verification' ? <p role="status" className="text-sm t-muted">แจ้งคืนแล้ว รอแอดมินตรวจของจริง ยังไม่ปิดรายการยืม</p> : <>
+                  {borrow.review_note && <p className="text-sm text-amber-700 dark:text-amber-300">ยังไม่รับคืน: {borrow.review_note}</p>}
                   <button
                     onClick={() => setSelectedBorrowForReturn(borrow)}
                     className="w-full py-3 px-4 rounded-xl text-xs font-black bg-[var(--foreground)] text-[var(--background)] flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] min-h-[44px]"
                   >
                     <Camera className="w-4 h-4" />
-                    <span>ถ่ายรูป / ส่งคืนอุปกรณ์นี้</span>
-                  </button>
+                    <span>ถ่ายรูป / แจ้งคืน</span>
+                  </button></>}
                 </div>
               ))}
             </div>
@@ -258,7 +266,7 @@ export default function MyBorrowsPage() {
       </main>
 
       {/* Return Modal */}
-      <ReturnModal
+      <ReturnModal key={selectedBorrowForReturn?.id ?? "closed"}
         borrow={selectedBorrowForReturn}
         isOpen={!!selectedBorrowForReturn}
         onClose={() => setSelectedBorrowForReturn(null)}

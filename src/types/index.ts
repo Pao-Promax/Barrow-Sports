@@ -40,6 +40,11 @@ export interface BorrowRequest {
   return_proof_url?: string | null;
   return_note?: string | null;
   verified_by?: string | null;
+  return_submitted_at?: string | null;
+  reported_damaged?: number;
+  verified_damaged?: number | null;
+  review_note?: string | null;
+  reviewed_at?: string | null;
   created_at?: string;
   equipment?: Equipment;
 }

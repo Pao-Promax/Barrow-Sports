@@ -1,6 +1,8 @@
 'use client';
+import { authHeaders } from '@/lib/auth-headers';
 
 import { equipmentIllustrations } from '@/lib/equipment-images';
+import { ReturnReview } from '@/components/return-review';
 import { useAdmin } from '@/lib/use-admin';
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/navbar';
@@ -20,7 +22,7 @@ import {
 
 const BORROW_STATUS = {
   active: 'ยืมอยู่',
-  pending_verification: 'รอตรวจสอบ',
+  pending_verification: 'รอตรวจรับ',
   returned: 'คืนแล้ว',
   overdue: 'เกินกำหนด',
   cancelled: 'ยกเลิกแล้ว',
@@ -44,7 +46,7 @@ export default function AdminPage() {
     try {
       const [eqRes, bRes] = await Promise.all([
         fetch('/api/equipment'),
-        fetch('/api/borrow')
+        fetch('/api/borrow', { headers: await authHeaders() })
       ]);
 
       const [eqData, bData] = await Promise.all([
@@ -68,7 +70,7 @@ export default function AdminPage() {
   const totalStock = equipmentList.reduce((sum, item) => sum + item.total_quantity, 0);
   const availableStock = equipmentList.reduce((sum, item) => sum + item.available_quantity, 0);
   const damagedStock = equipmentList.reduce((sum, item) => sum + (item.damaged_quantity || 0), 0);
-  const activeBorrowsCount = borrowList.filter((b) => b.status === 'active').length;
+  const activeBorrowsCount = borrowList.filter((b) => ['active', 'overdue', 'pending_verification'].includes(b.status)).length;
 
   const filteredEquipment = equipmentList.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -164,6 +166,12 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+
+        {isAdmin && <section aria-label="คิวตรวจรับคืน" className="space-y-4">
+          <h2 className="text-lg font-semibold">รอตรวจรับคืน ({borrowList.filter(b => b.status === 'pending_verification').length})</h2>
+          <p className="text-sm t-muted">ตรวจอุปกรณ์จริงและจำนวนให้ครบก่อนรับคืน ระบบยังไม่เพิ่มสต็อกระหว่างรอตรวจ</p>
+          <div className="grid gap-4 md:grid-cols-2">{borrowList.filter(b => b.status === 'pending_verification').map(borrow => <ReturnReview key={borrow.id} borrow={borrow} onSuccess={fetchData} />)}</div>
+        </section>}
 
         {/* Tab 1: Inventory (Cards on Mobile, Table on Desktop) */}
         {activeTab === 'inventory' && (

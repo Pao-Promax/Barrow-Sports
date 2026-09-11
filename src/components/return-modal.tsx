@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { X, Camera, CheckCircle2, AlertTriangle, Image as ImageIcon } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Camera, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { authHeaders } from '@/lib/auth-headers';
 import { BorrowRequest } from '@/types';
 
 interface ReturnModalProps {
@@ -22,11 +22,15 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
+
   if (!isOpen || !borrow) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (selected) {
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(selected.type) || selected.size > 10 * 1024 * 1024) { setError('ใช้รูป JPG, PNG หรือ WebP ไม่เกิน 10 MB'); return; }
+      setError('');
       setFile(selected);
       const url = URL.createObjectURL(selected);
       setPreviewUrl(url);
@@ -39,6 +43,8 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
     setLoading(true);
 
     try {
+      if (!file) throw new Error('กรุณาถ่ายรูปอุปกรณ์ที่จุดคืน');
+      const headers = await authHeaders();
       let uploadedProofUrl = '';
 
       if (file) {
@@ -48,20 +54,19 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
 
         const uploadRes = await fetch('/api/upload', {
           method: 'POST',
+          headers,
           body: formData
         });
 
         const uploadData = await uploadRes.json();
         if (uploadRes.ok && uploadData.url) {
           uploadedProofUrl = uploadData.url;
-        }
-      } else {
-        uploadedProofUrl = 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80';
+        } else { throw new Error(uploadData.error || 'อัปโหลดรูปไม่สำเร็จ'); }
       }
 
       const res = await fetch('/api/return', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           borrow_id: borrow.id,
           return_proof_url: uploadedProofUrl,
@@ -75,12 +80,6 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
       if (!res.ok) {
         throw new Error(data.error || 'เกิดข้อผิดพลาดในการส่งคืน');
       }
-
-      confetti({
-        particleCount: 70,
-        spread: 60,
-        origin: { y: 0.7 }
-      });
 
       onSuccess();
       onClose();
@@ -104,10 +103,11 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
         <div className="flex items-center justify-between px-6 py-4 border-b t-line shrink-0">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50"></span>
-            <h3 className="font-bold text-base text-[var(--foreground)]">ส่งคืนอุปกรณ์กีฬา</h3>
+            <h3 className="font-bold text-base text-[var(--foreground)]">แจ้งคืนอุปกรณ์กีฬา</h3>
           </div>
           <button
             onClick={onClose}
+            aria-label="ปิดหน้าต่าง"
             className="t-muted hover:text-[var(--foreground)] p-1.5 rounded-lg hover:bg-[var(--accent-soft)] transition-colors"
           >
             <X className="w-5 h-5" />
@@ -147,7 +147,7 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               capture="environment"
               className="hidden"
             />
@@ -161,6 +161,7 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
                 />
                 <button
                   type="button"
+                  aria-label="ลบรูปหลักฐาน"
                   onClick={() => {
                     setFile(null);
                     setPreviewUrl('');
@@ -175,7 +176,8 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
                 </div>
               </div>
             ) : (
-              <div
+              <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="border-2 border-dashed t-line hover:border-cyan-400/60 rounded-2xl p-6 sm:p-8 text-center cursor-pointer glass-panel hover:bg-[var(--accent-soft)] transition-all flex flex-col items-center justify-center gap-2.5 min-h-[140px]"
               >
@@ -186,9 +188,9 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
                   แตะเพื่อเปิดกล้องถ่ายรูป หรือเลือกรูปจากมือถือ
                 </div>
                 <p className="text-[11px] t-muted max-w-xs">
-                  ถ่ายรูปอุปกรณ์ที่วางเก็บบนตู้หรือชั้นวาง เพื่อเป็นหลักฐานปิดรายการยืม
+                  ถ่ายรูปอุปกรณ์ที่วางเก็บบนตู้หรือชั้นวาง แอดมินจะตรวจของจริงก่อนปิดรายการและคืนสต็อก
                 </p>
-              </div>
+              </button>
             )}
           </div>
 
@@ -258,7 +260,7 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !file}
               className="flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer min-h-[44px]"
             >
               {loading ? (
@@ -266,7 +268,7 @@ export function ReturnModal({ borrow, isOpen, onClose, onSuccess }: ReturnModalP
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>ยืนยันส่งคืนอุปกรณ์</span>
+                  <span>แจ้งคืน · รอตรวจรับ</span>
                 </>
               )}
             </button>

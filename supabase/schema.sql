@@ -77,3 +77,5 @@ CREATE POLICY "Public Read Equipment Images" ON storage.objects FOR SELECT USING
 CREATE POLICY "Public Upload Equipment Images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'equipment-images');
 CREATE POLICY "Public Read Return Proofs" ON storage.objects FOR SELECT USING (bucket_id = 'return-proofs');
 CREATE POLICY "Public Upload Return Proofs" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'return-proofs');
+
+-- After creating tables, apply migrations/20260911_return_review.sql for the required review workflow and server-only writes.

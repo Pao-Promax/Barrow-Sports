@@ -1,4 +1,5 @@
 'use client';
+import { authHeaders } from '@/lib/auth-headers';
 
 import React, { useState } from 'react';
 import { X, Wrench, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react';
@@ -30,7 +31,7 @@ export function EditEquipmentModal({ equipment, isOpen, onClose, onSuccess }: Ed
     try {
       const res = await fetch('/api/equipment', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...await authHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: equipment.id,
           total_quantity: totalQuantity,
@@ -61,7 +62,7 @@ export function EditEquipmentModal({ equipment, isOpen, onClose, onSuccess }: Ed
 
     try {
       const res = await fetch(`/api/equipment?id=${equipment.id}`, {
-        method: 'DELETE'
+        method: 'DELETE', headers: await authHeaders()
       });
 
       if (!res.ok) {

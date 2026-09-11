@@ -1,3 +1,4 @@
+import { requestUser } from '@/lib/request-user';
 import { isSchoolAccount, SCHOOL_LOGIN_MESSAGE } from '@/lib/school-account';
 import { isAdminUser } from '@/lib/admin-role';
 import { NextResponse } from 'next/server';
@@ -88,6 +89,8 @@ export async function POST(request: Request) {
 // PATCH: Update equipment (Stock adjustment, Damage count, etc.)
 export async function PATCH(request: Request) {
   try {
+    const auth = await requestUser(request, true);
+    if (!auth.user) return NextResponse.json({ error: auth.error }, { status: auth.status });
     const body = await request.json();
     const { id, ...updates } = body;
 
@@ -118,6 +121,8 @@ export async function PATCH(request: Request) {
 // DELETE: Remove equipment
 export async function DELETE(request: Request) {
   try {
+    const auth = await requestUser(request, true);
+    if (!auth.user) return NextResponse.json({ error: auth.error }, { status: auth.status });
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

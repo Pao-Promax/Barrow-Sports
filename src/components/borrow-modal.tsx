@@ -1,4 +1,6 @@
 'use client';
+import { useSchoolUser } from '@/lib/use-school-user';
+import { authHeaders } from '@/lib/auth-headers';
 
 import React, { useState } from 'react';
 import { X, Clock, MapPin, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
@@ -16,9 +18,7 @@ interface BorrowModalProps {
 export function BorrowModal({ equipment, isOpen, onClose, onSuccess }: BorrowModalProps) {
   const [quantity, setQuantity] = useState(1);
   const [durationHours, setDurationHours] = useState(2);
-  const [userName, setUserName] = useState('นายธีรชัย (นักเรียน)');
-  const [studentId, setStudentId] = useState('50788');
-  const [userEmail, setUserEmail] = useState('50788@cru.ac.th');
+  const { user } = useSchoolUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -47,11 +47,9 @@ export function BorrowModal({ equipment, isOpen, onClose, onSuccess }: BorrowMod
     try {
       const res = await fetch('/api/borrow', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...await authHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
           equipment_id: equipment.id,
-          user_name: `${userName} (รหัส: ${studentId})`,
-          user_email: userEmail,
           quantity,
           duration_hours: durationHours
         })
@@ -200,33 +198,7 @@ export function BorrowModal({ equipment, isOpen, onClose, onSuccess }: BorrowMod
             </div>
           </div>
 
-          {/* Borrower Information */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-semibold t-muted mb-1">
-                ชื่อผู้ยืม
-              </label>
-              <input
-                type="text"
-                required
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                className="w-full px-3.5 py-2.5 glass-input rounded-xl text-xs text-[var(--foreground)] focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold t-muted mb-1">
-                รหัสนักเรียน / บัตรประจำตัว
-              </label>
-              <input
-                type="text"
-                required
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                className="w-full px-3.5 py-2.5 glass-input rounded-xl text-xs text-[var(--foreground)] focus:outline-none"
-              />
-            </div>
-          </div>
+          <p className="text-sm t-muted">{user ? `ยืมด้วยบัญชี ${user.email}` : 'กรุณาเข้าสู่ระบบที่หน้าโปรไฟล์ก่อนยืม'}</p>
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t t-line shrink-0 pb-2 sm:pb-0">
@@ -239,7 +211,7 @@ export function BorrowModal({ equipment, isOpen, onClose, onSuccess }: BorrowMod
             </button>
             <button
               type="submit"
-              disabled={loading || equipment.available_quantity === 0}
+              disabled={loading || !user || equipment.available_quantity === 0}
               className="flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer active:scale-98 min-h-[44px]"
             >
               {loading ? (
