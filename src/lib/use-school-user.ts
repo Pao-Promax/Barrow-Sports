@@ -10,12 +10,24 @@ export function useSchoolUser() {
   const [error, setError] = useState('');
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
+    let revision = 0;
+    const refreshUser = async () => {
+      const current = ++revision;
+      const { data: { user: latest }, error: refreshError } = await supabase.auth.getUser();
+      if (current !== revision) return;
+      if (refreshError) { setUser(null); setError('ตรวจสอบบัญชีไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ'); return; }
+      setUser(isSchoolAccount(latest) ? latest : null);
+      setError(latest && !isSchoolAccount(latest) ? SCHOOL_LOGIN_MESSAGE : '');
+    };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      ++revision;
       clearTimeout(timer);
       if (!session) { setUser(null); return; }
       if (isSchoolAccount(session.user)) {
         setUser(session.user);
         setError('');
+        // Read current app_metadata instead of retaining roles from an older JWT.
+        timer = setTimeout(() => { void refreshUser(); }, 0);
       } else {
         setUser(null);
         setError(SCHOOL_LOGIN_MESSAGE);
@@ -23,7 +35,9 @@ export function useSchoolUser() {
         timer = setTimeout(() => { void supabase.auth.signOut({ scope: 'local' }); }, 0);
       }
     });
-    return () => { clearTimeout(timer); subscription.unsubscribe(); };
+    const onFocus = () => { if (document.visibilityState === 'visible') void refreshUser(); };
+    document.addEventListener('visibilitychange', onFocus);
+    return () => { ++revision; clearTimeout(timer); subscription.unsubscribe(); document.removeEventListener('visibilitychange', onFocus); };
   }, []);
   return { user, error };
 }
