@@ -6,6 +6,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const bucket = (formData.get('bucket') as string) || 'return-proofs';
+    if (bucket !== 'return-proofs') return NextResponse.json({ error: 'ไม่อนุญาตให้อัปโหลดไปยังพื้นที่นี้' }, { status: 403 });
 
     if (!file) {
       return NextResponse.json({ error: 'ไม่พบไฟล์รูปภาพ' }, { status: 400 });

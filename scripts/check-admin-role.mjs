@@ -8,6 +8,7 @@ for (const method of ['GET', 'POST']) {
   const response = await fetch('http://localhost:3000/api/subadmins', { method });
   assert.equal(response.status, 401);
 }
+assert.equal((await fetch('http://localhost:3000/api/equipment-image', { method: 'POST' })).status, 401);
 assert.equal(isAdminUser(null), false);
 assert.equal(isAdminUser({}), false);
 assert.equal(isAdminUser({ user_metadata: { role: 'admin' } }), false);

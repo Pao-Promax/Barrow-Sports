@@ -1,0 +1,22 @@
+<!doctype html><html><body><p id="status">Running background removal check</p><img id="result" alt="Test output"><script>
+(async () => {
+ const worker = new Worker('/bg/worker.js');
+ const photo = await (await fetch('/bg-test.jpg')).blob();
+ worker.onmessage = async ({data}) => {
+   if(data.status) document.getElementById('status').textContent = data.status;
+   if(data.error) document.getElementById('status').textContent = 'FAIL: '+data.error;
+   if(data.blob) {
+     const image = await createImageBitmap(data.blob);
+     const c = document.createElement('canvas'); c.width=image.width;c.height=image.height;
+     const ctx=c.getContext('2d');ctx.drawImage(image,0,0);
+     const pixels=ctx.getImageData(0,0,c.width,c.height).data;
+     let transparent=0,opaque=0;
+     for(let i=3;i<pixels.length;i+=4){if(pixels[i]<20)transparent++;if(pixels[i]>235)opaque++;}
+     document.getElementById('status').textContent=(transparent>100&&opaque>100?'PASS':'FAIL')+JSON.stringify({transparent,opaque,type:data.blob.type,width:c.width,height:c.height});
+     document.getElementById('result').src=URL.createObjectURL(data.blob);worker.terminate();
+   }
+ };
+ worker.onerror=()=>document.getElementById('status').textContent='FAIL: worker error';
+ worker.postMessage(photo);
+})();
+</script></body></html>
