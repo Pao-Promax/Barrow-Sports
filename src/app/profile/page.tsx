@@ -8,7 +8,8 @@ import { LogIn } from 'lucide-react';
 import { Navbar } from '@/components/navbar';
 import { ThemeToggle } from '@/components/theme-toggle';
 
-import { isAdminUser } from '@/lib/admin-role';
+import { isAdminUser, isSuperAdminUser } from '@/lib/admin-role';
+import { SubadminSettings } from '@/components/subadmin-settings';
 
 export default function ProfilePage() {
   const { user, error: accountError } = useSchoolUser();
@@ -37,7 +38,7 @@ export default function ProfilePage() {
             </div>
             <dl className="space-y-4 text-sm">
               <div><dt className="t-muted mb-1">อีเมล</dt><dd className="break-all">{user.email || 'ไม่ได้ระบุ'}</dd></div>
-              <div><dt className="t-muted mb-1">สิทธิ์บัญชี</dt><dd>{isAdminUser(user) ? 'Admin' : 'นักเรียน'}</dd></div>
+              <div><dt className="t-muted mb-1">สิทธิ์บัญชี</dt><dd>{isSuperAdminUser(user) ? 'Super Admin' : isAdminUser(user) ? 'Subadmin' : 'นักเรียน'}</dd></div>
             </dl>
             <Link href="/my-borrows" className="flex min-h-11 items-center justify-center rounded-xl glass-pill text-sm font-medium">ดูของที่ฉันยืม</Link>
           </section>
@@ -48,6 +49,7 @@ export default function ProfilePage() {
             <button onClick={signIn} className="min-h-11 px-4 py-3 rounded-xl bg-[var(--foreground)] text-[var(--background)] flex items-center gap-2 text-sm font-medium"><LogIn className="w-4 h-4" aria-hidden="true" />เข้าสู่ระบบด้วย Google</button>
           </section>
         )}
+        {isSuperAdminUser(user) && <SubadminSettings />}
         {(error || accountError) && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{error || accountError}</p>}
       </main>
     </div>
